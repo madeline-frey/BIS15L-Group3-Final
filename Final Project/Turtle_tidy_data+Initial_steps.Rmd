@@ -48,14 +48,16 @@ turtles3<-turtles_tidy%>%
   mutate(Capture_month=month(DateCapture_new))%>%
   mutate(Capture_day=day(DateCapture_new))%>%
   mutate(capture_week_day=wday(DateCapture_new))
+turtles3<-clean_names(turtles3)
 head(turtles3)
+view(turtles3)
 ```
 
 #mapping for release and capture sites
 
 ```{r}
 turtles3%>%
-  select(Cap_Latitude,Cap_Longitude)%>%
+  select(cap_latitude,cap_longitude)%>%
   summary()
 ```
 
@@ -74,12 +76,12 @@ ggmap(cap_map_base)
 
 ```{r}
 ggmap(cap_map_base) + 
-  geom_point(data = turtles3, aes(Cap_Longitude,Cap_Latitude,color=Species,shape=dead_alive_new), size = 2, alpha = 0.7) +
+  geom_point(data = turtles3, aes(cap_longitude,cap_latitude,color=species,shape=dead_alive_new), size = 2, alpha = 0.7) +
            labs(x = "Longitude", y = "Latitude", title = "Capture Locations")
 ```
 ```{r}
 turtles3%>%
-  select(Rel_Latitude,Rel_Longitude)%>%
+  select(rel_latitude,rel_longitude)%>%
   summary()
 ```
 
@@ -95,7 +97,7 @@ ggmap(rel_map_base)
 ```
 ```{r}
 ggmap(rel_map_base) + 
-  geom_point(data = turtles3, aes(Rel_Longitude,Rel_Latitude,color=Species), size = 2, alpha = 0.7) +
+  geom_point(data = turtles3, aes(rel_longitude,rel_latitude,color=species), size = 2, alpha = 0.7) +
            labs(x = "Longitude", y = "Latitude", title = "Release Locations")
 ```
 #we can then make additional maps with color or shape of the dots for different variables. We also should pick a unifying color scheme/text/chart and map theme for all of our images (Ideally a color that stands out against the terrain background if we want to stick with terrain for our maps)
@@ -117,12 +119,12 @@ turtles3%>%
 
 ```{r}
 turtles3%>%
-  group_by(Capture_month)%>%
+  group_by(capture_month)%>%
   summarise(n())
 ```
 ```{r}
 turtles3%>%
-  ggplot(aes(month(x=DateCapture_new,label=TRUE)))+
+  ggplot(aes(month(x=date_capture_new,label=TRUE)))+
   geom_bar(position = "dodge")+
   labs(x = NULL,
          y = "Number of Captures")
@@ -131,13 +133,13 @@ turtles3%>%
 
 ```{r}
 turtles3%>%
-  group_by(Capture_day)%>%
+  group_by(capture_day)%>%
   summarise(n())
 ```
 
 ```{r}
 turtles3%>%
-  ggplot(aes(day(x=DateCapture_new)))+
+  ggplot(aes(day(x=date_capture_new)))+
   geom_bar()+
   labs(x = NULL,
          y = "Number of Captures")
@@ -151,7 +153,7 @@ turtles3%>%
 ```
 ```{r}
 turtles3%>%
-  ggplot(aes(wday(x=DateCapture_new,label=TRUE)))+
+  ggplot(aes(wday(x=date_capture_new,label=TRUE)))+
   geom_bar()+
   labs(x = NULL,
          y = "Number of Captures")
@@ -161,26 +163,117 @@ turtles3%>%
 ```{r}
 turtles3%>%
   group_by(year)%>%
-  mutate(mean_body_length=mean(SCL_tip,na.rm=T))%>%
-  ggplot(aes(x=year,y=mean_body_length,group=1,color=Species))+
+  mutate(mean_body_length=mean(scl_tip,na.rm=T))%>%
+  ggplot(aes(x=year,y=mean_body_length,group=1,color=species))+
   geom_line()+
   geom_point()+
-  facet_wrap(~Species)
+  facet_wrap(~species)
 ```
 ```{r}
 turtles3%>%
-  ggplot(aes(x=Species,y=CCL_tip,color=Species))+
+  ggplot(aes(x=species,y=ccl_tip,color=species))+
   geom_boxplot()
 ```
 #we of course can fix the axis and replicate this kind of graph for other measurements (SCL_noth/SCl_tip, CCl_notch, etc)
 
 ```{r}
 turtles3%>%
-  filter(Gear!=""&Species!="")%>%
-  ggplot(aes(x=Gear,fill=Species))+
+  filter(gear!=""&species!="")%>%
+  ggplot(aes(x=gear,fill=species))+
   geom_bar(position = "dodge")+
   labs(title = "Gear used for Different Species",x="Gear",y="Number Captured with Given Method")+
   theme(axis.text.x = element_text(angle = 60,hjust = 1))+
   scale_y_log10()
 ```
+```{r}
+names(turtles3)
+```
+#This App is for some categorical variables across the years for different spcecies
+```{r}
+library(shinydashboard)
+```
 
+
+```{r}
+turtles3$year<-as.character(turtles3$year)
+ui <- dashboardPage(skin="green",
+  dashboardHeader(title = "Turtle Captures"),
+  dashboardSidebar(disable = F),
+  dashboardBody(selectInput("species", "Select Species:", 
+                  choices=unique(turtles3$species)),
+  fluidRow(
+  box(title = "Plot Options", width = 4,
+  selectInput("x", "Catch Details", choices = c("research_type","dead_alive_new", "body_area_pit","body_area","record_type","cap_region","rel_region"), 
+              selected = "record_type"),
+      hr(),
+      helpText("Source: (https://www.fisheries.noaa.gov/inport/item/35875). Capture efforts were conducted to evaluate the growth rates, sex ratios, size distribution, species composition, genetic composition, relative survival rates and foraging ecology of sea turtle populations in NC.")
+  ), 
+  box(title = "Turtle Information", width = 8,
+  plotOutput("plot", width = "800px", height = "500px")
+  ) 
+  ) 
+  ) 
+  )
+server <- function(input, output, session) { 
+  
+  output$plot <- renderPlot({
+  turtles3 %>%
+      filter(species == input$species) %>%
+  ggplot(aes_string(x ="year",fill = input$x)) +
+  geom_bar(position = "dodge")+
+       scale_fill_brewer(palette = "Set1")+
+  theme_light(base_size = 18)+
+     theme(axis.text.x = element_text(angle = 60, hjust = 1))+
+      labs(title = "Turtle Catch Characterisitics",x=NULL,y="Number of Turtles")
+  })
+  
+  session$onSessionEnded(stopApp)
+  }
+
+shinyApp(ui, server)
+```
+
+```{r}
+turtles3%>%
+  tabyl(haplotype)
+```
+#This next app shows which tests were perfomed across the years.
+
+```{r}
+turtles3$year<-as.character(turtles3$year)
+ui <- dashboardPage(skin="green",
+  dashboardHeader(title = "Turtle Capture Tests"),
+  dashboardSidebar(disable = F),
+  dashboardBody(selectInput("species", "Select Species:", 
+                  choices=unique(turtles3$species)),
+  fluidRow(
+  box(title = "Plot Options", width = 4,
+  selectInput("x", "Type of Test", choices = c("oxtetracyclene","health_blood","satellite_tag","holding_facility","sex_laparoscopy",     "sex_necropsy","sex_testosterone_level_1","sex_testosterone_level_2","hematology","oc_ob","fh","metals","sia_skin","sia_bone",     "sia_blood","sia_barnacles","sia_scutes","sia_analyzed","photos","scute","cloacal","lesion","fat","fecal","pathogens",     "entangled","imaging","organ_biopsy"), 
+              selected = "entangled"),
+      hr(),
+      helpText("Source: (https://www.fisheries.noaa.gov/inport/item/35875). Capture efforts were conducted to evaluate the growth rates, sex ratios, size distribution, species composition, genetic composition, relative survival rates and foraging ecology of sea turtle populations in NC.")
+  ), 
+  box(title = "Test Performed T/F", width = 8,
+  plotOutput("plot", width = "800px", height = "500px")
+  ) 
+  ) 
+  ) 
+  )
+server <- function(input, output, session) { 
+  
+  output$plot <- renderPlot({
+  turtles3 %>%
+      filter(species == input$species) %>%
+  ggplot(aes_string(x ="year",fill = input$x)) +
+  geom_bar(position = "dodge")+
+       scale_fill_brewer(palette = "Set1")+
+  theme_light(base_size = 18)+
+     theme(axis.text.x = element_text(angle = 60, hjust = 1))+
+      labs(title = "Tests Performed On Turtles",x=NULL,y="Number of Turtles Tested for Selected Test")
+  })
+  
+  session$onSessionEnded(stopApp)
+  }
+
+shinyApp(ui, server)
+```
