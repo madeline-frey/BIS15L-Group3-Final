@@ -140,7 +140,7 @@ turtles3%>%
 ```{r}
 turtles3%>%
   ggplot(aes(day(x=date_capture_new)))+
-  geom_bar()+
+  geom_density(fill="green")+
   labs(x = NULL,
          y = "Number of Captures")
 ```
