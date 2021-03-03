@@ -1,0 +1,49 @@
+
+Turtles test
+========================================================
+author: Madeline Frey
+date: 
+autosize: true
+
+RPresentation help:  
+[basics](https://support.rstudio.com/hc/en-us/articles/200486468-Authoring-R-Presentations)  
+[appearance](https://support.rstudio.com/hc/en-us/articles/200532307-Customizing-Fonts-and-Appearance)
+
+Sea Turtle Sampling on the Atlantic Coast  
+========================================================
+
+- Mapping Locations
+
+- Use of Sampling Methods
+
+- Turtle Measurements
+***
+![alt_text](turtle_pic.png)
+
+```{r, echo= FALSE}
+#don't really know why I can't get the picture to work :(
+#use echo=false to hide the code chunk and only show output. 
+```
+
+Slide With Code
+========================================================
+```{r, echo=FALSE}
+library(here)
+turtles<-read.csv(here("Final Project","Turtle_data.csv"))
+```
+```{r}
+library(tidyverse)
+summary(turtles)
+#get an error: "error in file(file, "rt"): cannot open the connection"
+```
+
+Slide With Plot
+========================================================
+
+```{r, echo=FALSE}
+plot(cars)
+```
+
+Picture
+========================================================
+![Release Locations](unnamed-chunk-28-1.png)
