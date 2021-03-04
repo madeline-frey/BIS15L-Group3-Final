@@ -277,3 +277,74 @@ server <- function(input, output, session) {
 
 shinyApp(ui, server)
 ```
+
+Quantitative Data Apps (rought first idea, will adjust aes on Thursday)
+```{r}
+ui <- dashboardPage(
+  dashboardHeader(title = "Turtle Measurements"),
+  dashboardSidebar(disable = T),
+  dashboardBody(
+  fluidRow(
+  box(
+  selectInput("x", "Select X Variable", choices = c("scl_notch ", "scl_tip", "scw", "ccl_notch", "ccl_tip", "ccw", "circumference", "tail", "girth", "depth_mid", "weight"), selected = "scl_notch"),
+  selectInput("y", "Select Y Variable", choices = c("scl_notch ", "scl_tip", "scw", "ccl_notch", "ccl_tip", "ccw", "circumference", "tail", "girth", "depth_mid", "weight"), selected = "scl_notch"),
+  ), # close the first box
+  box(
+  plotOutput("plot", width = "500px", height = "500px")
+  ) 
+  ) 
+  ) 
+) 
+
+server <- function(input, output, session) { 
+  output$plot <- renderPlot({
+  ggplot(turtles3, aes_string(x = input$x, y = input$y)) + geom_point(alpha=0.8) + theme_light(base_size = 18)
+  })
+  session$onSessionEnded(stopApp)
+  }
+
+shinyApp(ui, server)
+```
+```{r}
+ui <- dashboardPage(
+  dashboardHeader(title = "Turtle Measurements"),
+  dashboardSidebar(disable = T),
+  dashboardBody(
+  fluidRow(
+  box(
+  selectInput("x", "Select X Variable", choices = c("cap_latitude", "cap_longitude"), selected = "scl_notch"),
+  selectInput("y", "Select Y Variable", choices = c("scl_notch ", "scl_tip", "scw", "ccl_notch", "ccl_tip", "ccw", "circumference", "tail", "girth", "depth_mid", "weight"), selected = "scl_notch"),
+  ), # close the first box
+  box(
+  plotOutput("plot", width = "500px", height = "500px")
+  ) 
+  ) 
+  ) 
+) 
+
+server <- function(input, output, session) { 
+  output$plot <- renderPlot({
+  ggplot(turtles3, aes_string(x = input$x, y = input$y)) + geom_point(alpha=0.8) + theme_light(base_size = 18)
+  })
+  session$onSessionEnded(stopApp)
+  }
+
+shinyApp(ui, server)
+```
+#My second app was an interesting idea, but it doesn't come out that pretty. Might just make some new maps where I scale point size by turtle weight, size, or depth. 
+
+Additional Graph Ideas: 
+```{r}
+turtles3 %>% 
+    mutate(mass_category = case_when(weight <= 30 ~ "small", weight >= 30 ~ "large")) %>% 
+  group_by(year) %>% 
+  ggplot(aes(x = year, fill = mass_category))+
+  geom_bar()+
+  labs(title = "Turtle Capture by Weight Class",
+       x = "Year",
+       y= "n")+
+    theme_linedraw()+
+  theme(axis.text.x = element_text(angle = 60, hjust = 1), plot.title = element_text(size = rel(1.5), hjust = 0.5))
+```
+
+

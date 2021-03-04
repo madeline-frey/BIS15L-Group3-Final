@@ -15,7 +15,7 @@ library(here)
 ```
 
 ```
-## here() starts at C:/Users/ericc/Desktop/BIS15L-Group3-Final
+## here() starts at /Users/isaiahbluestein/Desktop/BIS15L-Group3-Final/BIS15L-Group3-Final
 ```
 
 ```r
@@ -23,18 +23,18 @@ library(tidyverse)
 ```
 
 ```
-## -- Attaching packages --------------------------------------- tidyverse 1.3.0 --
+## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.0 ──
 ```
 
 ```
-## v ggplot2 3.3.3     v purrr   0.3.4
-## v tibble  3.0.6     v dplyr   1.0.3
-## v tidyr   1.1.2     v stringr 1.4.0
-## v readr   1.4.0     v forcats 0.5.1
+## ✓ ggplot2 3.3.3     ✓ purrr   0.3.4
+## ✓ tibble  3.1.0     ✓ dplyr   1.0.4
+## ✓ tidyr   1.1.2     ✓ stringr 1.4.0
+## ✓ readr   1.4.0     ✓ forcats 0.5.1
 ```
 
 ```
-## -- Conflicts ------------------------------------------ tidyverse_conflicts() --
+## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
 ## x dplyr::filter() masks stats::filter()
 ## x dplyr::lag()    masks stats::lag()
 ```
@@ -79,8 +79,8 @@ library(rgeos)
 
 ```
 ## rgeos version: 0.5-5, (SVN revision 640)
-##  GEOS runtime version: 3.8.0-CAPI-1.13.1 
-##  Linking to sp version: 1.4-5 
+##  GEOS runtime version: 3.8.1-CAPI-1.13.3 
+##  Linking to sp version: 1.4-2 
 ##  Polygon checking: TRUE
 ```
 
@@ -91,16 +91,14 @@ library(rgdal)
 ```
 ## rgdal: version: 1.5-23, (SVN revision 1121)
 ## Geospatial Data Abstraction Library extensions to R successfully loaded
-## Loaded GDAL runtime: GDAL 3.2.1, released 2020/12/29
-## Path to GDAL shared files: C:/Users/ericc/Documents/R/win-library/4.0/rgdal/gdal
+## Loaded GDAL runtime: GDAL 3.1.4, released 2020/10/20
+## Path to GDAL shared files: /Library/Frameworks/R.framework/Versions/4.0/Resources/library/rgdal/gdal
 ## GDAL binary built with GEOS: TRUE 
-## Loaded PROJ runtime: Rel. 7.2.1, January 1st, 2021, [PJ_VERSION: 721]
-## Path to PROJ shared files: C:/Users/ericc/Documents/R/win-library/4.0/rgdal/proj
-## PROJ CDN enabled: FALSE
+## Loaded PROJ runtime: Rel. 6.3.1, February 10th, 2020, [PJ_VERSION: 631]
+## Path to PROJ shared files: /Library/Frameworks/R.framework/Versions/4.0/Resources/library/rgdal/proj
 ## Linking to sp version:1.4-5
 ## To mute warnings of possible GDAL/OSR exportToProj4() degradation,
 ## use options("rgdal_show_exportToProj4_warnings"="none") before loading rgdal.
-## Overwritten PROJ_LIB was C:/Users/ericc/Documents/R/win-library/4.0/rgdal/proj
 ```
 
 ```r
@@ -382,7 +380,7 @@ turtles3%>%
 ##  8  1995   464
 ##  9  1996   500
 ## 10  1997   463
-## # ... with 18 more rows
+## # … with 18 more rows
 ```
 
 ```r
@@ -452,14 +450,14 @@ turtles3%>%
 ##  8           8   374
 ##  9           9   458
 ## 10          10   586
-## # ... with 21 more rows
+## # … with 21 more rows
 ```
 
 
 ```r
 turtles3%>%
   ggplot(aes(day(x=date_capture_new)))+
-  geom_bar()+
+  geom_density(fill="green")+
   labs(x = NULL,
          y = "Number of Captures")
 ```
@@ -749,3 +747,83 @@ shinyApp(ui, server)
 ```
 
 `<div style="width: 100% ; height: 400px ; text-align: center; box-sizing: border-box; -moz-box-sizing: border-box; -webkit-box-sizing: border-box;" class="muted well">Shiny applications not supported in static R Markdown documents</div>`{=html}
+
+Quantitative Data Apps (rought first idea, will adjust aes on Thursday)
+
+```r
+ui <- dashboardPage(
+  dashboardHeader(title = "Turtle Measurements"),
+  dashboardSidebar(disable = T),
+  dashboardBody(
+  fluidRow(
+  box(
+  selectInput("x", "Select X Variable", choices = c("scl_notch ", "scl_tip", "scw", "ccl_notch", "ccl_tip", "ccw", "circumference", "tail", "girth", "depth_mid", "weight"), selected = "scl_notch"),
+  selectInput("y", "Select Y Variable", choices = c("scl_notch ", "scl_tip", "scw", "ccl_notch", "ccl_tip", "ccw", "circumference", "tail", "girth", "depth_mid", "weight"), selected = "scl_notch"),
+  ), # close the first box
+  box(
+  plotOutput("plot", width = "500px", height = "500px")
+  ) 
+  ) 
+  ) 
+) 
+
+server <- function(input, output, session) { 
+  output$plot <- renderPlot({
+  ggplot(turtles3, aes_string(x = input$x, y = input$y)) + geom_point(alpha=0.8) + theme_light(base_size = 18)
+  })
+  session$onSessionEnded(stopApp)
+  }
+
+shinyApp(ui, server)
+```
+
+`<div style="width: 100% ; height: 400px ; text-align: center; box-sizing: border-box; -moz-box-sizing: border-box; -webkit-box-sizing: border-box;" class="muted well">Shiny applications not supported in static R Markdown documents</div>`{=html}
+
+```r
+ui <- dashboardPage(
+  dashboardHeader(title = "Turtle Measurements"),
+  dashboardSidebar(disable = T),
+  dashboardBody(
+  fluidRow(
+  box(
+  selectInput("x", "Select X Variable", choices = c("cap_latitude", "cap_longitude"), selected = "scl_notch"),
+  selectInput("y", "Select Y Variable", choices = c("scl_notch ", "scl_tip", "scw", "ccl_notch", "ccl_tip", "ccw", "circumference", "tail", "girth", "depth_mid", "weight"), selected = "scl_notch"),
+  ), # close the first box
+  box(
+  plotOutput("plot", width = "500px", height = "500px")
+  ) 
+  ) 
+  ) 
+) 
+
+server <- function(input, output, session) { 
+  output$plot <- renderPlot({
+  ggplot(turtles3, aes_string(x = input$x, y = input$y)) + geom_point(alpha=0.8) + theme_light(base_size = 18)
+  })
+  session$onSessionEnded(stopApp)
+  }
+
+shinyApp(ui, server)
+```
+
+`<div style="width: 100% ; height: 400px ; text-align: center; box-sizing: border-box; -moz-box-sizing: border-box; -webkit-box-sizing: border-box;" class="muted well">Shiny applications not supported in static R Markdown documents</div>`{=html}
+#My second app was an interesting idea, but it doesn't come out that pretty. Might just make some new maps where I scale point size by turtle weight, size, or depth. 
+
+Additional Graph Ideas: 
+
+```r
+turtles3 %>% 
+    mutate(mass_category = case_when(weight <= 30 ~ "small", weight >= 30 ~ "large")) %>% 
+  group_by(year) %>% 
+  ggplot(aes(x = year, fill = mass_category))+
+  geom_bar()+
+  labs(title = "Turtle Capture by Weight Class",
+       x = "Year",
+       y= "n")+
+    theme_linedraw()+
+  theme(axis.text.x = element_text(angle = 60, hjust = 1), plot.title = element_text(size = rel(1.5), hjust = 0.5))
+```
+
+![](Turtle_tidy_data+Initial_steps_files/figure-html/unnamed-chunk-32-1.png)<!-- -->
+
+
