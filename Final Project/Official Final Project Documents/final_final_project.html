@@ -380,17 +380,27 @@ server &lt;- function(input, output, session) {
 shinyApp(ui, server)</code></pre>
 <p><div style="width: 100% ; height: 400px ; text-align: center; box-sizing: border-box; -moz-box-sizing: border-box; -webkit-box-sizing: border-box;" class="muted well">Shiny applications not supported in static R Markdown documents</div></p>
 <p>#Quantitative Data Apps (rought first idea, will adjust aes on Thursday-remember change color and add descriptions for measurements and source data like in the qualitative apps)</p>
-<pre class="r"><code>ui &lt;- dashboardPage(
+<pre class="r"><code>ui &lt;- dashboardPage(skin=&quot;green&quot;,
   dashboardHeader(title = &quot;Turtle Measurements&quot;),
   dashboardSidebar(disable = T),
   dashboardBody(
   fluidRow(
-  box(
+  box(title=&quot;Measurement Options&quot;,width=3,
   selectInput(&quot;x&quot;, &quot;Select X Variable&quot;, choices = c(&quot;scl_notch &quot;, &quot;scl_tip&quot;, &quot;scw&quot;, &quot;ccl_notch&quot;, &quot;ccl_tip&quot;, &quot;ccw&quot;, &quot;circumference&quot;, &quot;tail&quot;, &quot;girth&quot;, &quot;depth_mid&quot;, &quot;weight&quot;), selected = &quot;scl_notch&quot;),
   selectInput(&quot;y&quot;, &quot;Select Y Variable&quot;, choices = c(&quot;scl_notch &quot;, &quot;scl_tip&quot;, &quot;scw&quot;, &quot;ccl_notch&quot;, &quot;ccl_tip&quot;, &quot;ccw&quot;, &quot;circumference&quot;, &quot;tail&quot;, &quot;girth&quot;, &quot;depth_mid&quot;, &quot;weight&quot;), selected = &quot;scl_notch&quot;),
-  ), # close the first box
+  hr(),
+      helpText(&quot;Source: (https://www.fisheries.noaa.gov/inport/item/35875). Capture efforts were conducted to evaluate the growth rates, sex ratios, size distribution, species composition, genetic composition, relative survival rates and foraging ecology of sea turtle populations in NC.&quot;)
+  ),
   box(
-  plotOutput(&quot;plot&quot;, width = &quot;500px&quot;, height = &quot;500px&quot;)
+  plotOutput(&quot;plot&quot;, width = &quot;700px&quot;, height = &quot;400px&quot;),
+  h5(&quot;SCL_notch-straight carapace length measured from notch to tip in cm&quot;),
+      h5(&quot;SCL_tip-straight carapace length measured from tip to tip in cm&quot;),h5(&quot;SCW-straight carapace width in cm&quot;),
+      h5(&quot;CCL_notch-curved carapace length measured from notch to tip in cm&quot;),
+      h5(&quot;CCL_tip-curved carapace length measured from tip to tip in cm&quot;),
+      h5(&quot;CCW-curved carapace width in cm&quot;),h5(&quot;Circumference-body depth of turtle measured with tape measure in cm&quot;),
+      h5(&quot;Girth-body depth of turtle measured with calipers, at highest point of carapace in cm&quot;),
+      h5(&quot;Depth_ mid-body depth of turtle measured with calipers, at mid-point of carapace in cm&quot;),h5(&quot;Tail-total length of tail in cm&quot;),
+      h5(&quot;Weight-weight of turtle in kilograms&quot;),
   ) 
   ) 
   ) 
@@ -398,7 +408,7 @@ shinyApp(ui, server)</code></pre>
 
 server &lt;- function(input, output, session) { 
   output$plot &lt;- renderPlot({
-  ggplot(turtles3, aes_string(x = input$x, y = input$y)) + geom_point(alpha=0.8) + theme_light(base_size = 18)
+  ggplot(turtles3, aes_string(x = input$x, y = input$y)) + geom_point(alpha=0.8) +scale_fill_brewer(palette = &quot;Set1&quot;)+ theme_light(base_size = 18)+theme(axis.text.x = element_text(angle = 60, hjust = 1))+labs(title=&quot;Turtle Measurement Comparisons&quot;)
   })
   session$onSessionEnded(stopApp)
   }
@@ -406,7 +416,7 @@ server &lt;- function(input, output, session) {
 shinyApp(ui, server)</code></pre>
 <p><div style="width: 100% ; height: 400px ; text-align: center; box-sizing: border-box; -moz-box-sizing: border-box; -webkit-box-sizing: border-box;" class="muted well">Shiny applications not supported in static R Markdown documents</div></p>
 <p>#this is where (if done) the interactive map will go</p>
-<p>#after those we can include any additional graphs or charts that we ant to include not covered in the apps</p>
+<p>#after those we can include any additional graphs or charts that we want to include not covered in the apps</p>
 <pre class="r"><code>turtles3%&gt;%
   ggplot(aes(x=year,fill=year))+
   geom_bar(position = &quot;dodge&quot;)+
