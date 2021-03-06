@@ -182,7 +182,7 @@ bbox <- make_bbox(cap_long, cap_lat, f = 0.1)
 
 
 ```r
-cap_map_base <- get_map(bbox, maptype = "terrain-background", source = "stamen")
+cap_map_base <- get_map(bbox, maptype = "toner-lite", source = "stamen")
 ```
 
 ```
@@ -200,7 +200,7 @@ ggmap(cap_map_base)
 
 ```r
 ggmap(cap_map_base) + 
-  geom_point(data = turtles3, aes(cap_longitude,cap_latitude,color=species,shape=dead_alive_new), size = 2, alpha = 0.7) +
+  geom_point(data = turtles3, aes(cap_longitude,cap_latitude,color=species,shape=dead_alive_new), size = 1.5) +
   scale_fill_brewer(palette = "Set1")+
   theme_light(base_size = 12)+
      theme(axis.text.x = element_text(angle = 60, hjust = 1))+
@@ -241,7 +241,7 @@ bbox2 <- make_bbox(rel_long, rel_lat, f = 0.05)
 
 
 ```r
-rel_map_base <- get_map(bbox2, maptype = "terrain-background", source = "stamen")
+rel_map_base <- get_map(bbox2, maptype = "toner-lite", source = "stamen")
 ```
 
 ```
@@ -258,7 +258,7 @@ ggmap(rel_map_base)
 
 ```r
 ggmap(rel_map_base) + 
-  geom_point(data = turtles3, aes(rel_longitude,rel_latitude,color=species), size = 2, alpha = 0.7) +
+  geom_point(data = turtles3, aes(rel_longitude,rel_latitude,color=species,shape=dead_alive_new), size = 1.5) +
   scale_fill_brewer(palette = "Set1")+
   theme_light(base_size = 12)+
      theme(axis.text.x = element_text(angle = 60, hjust = 1))+
@@ -270,6 +270,32 @@ ggmap(rel_map_base) +
 ```
 
 ![](final_final_project_files/figure-html/unnamed-chunk-12-1.png)<!-- -->
+
+```r
+ggmap(rel_map_base) + 
+  geom_point(data = turtles3, aes(rel_longitude,rel_latitude,color=species,shape=dead_alive_new), size = 1.5) +
+  xlim(-82,-71)+
+  scale_fill_brewer(palette = "Set1")+
+  theme_light(base_size = 12)+
+     theme(axis.text.x = element_text(angle = 60, hjust = 1))+
+           labs(x = "Longitude", y = "Latitude", title = "Release Locations Without Outlier")
+```
+
+```
+## Scale for 'x' is already present. Adding another scale for 'x', which will
+## replace the existing scale.
+```
+
+```
+## Warning: Removed 1 rows containing missing values (geom_rect).
+```
+
+```
+## Warning: Removed 357 rows containing missing values (geom_point).
+```
+
+![](final_final_project_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
+
 
 
 ```r
@@ -416,24 +442,9 @@ shinyApp(ui, server)
 
 ```r
 turtles3%>%
-  ggplot(aes(month(x=date_capture_new,label=TRUE), fill=month(x=date_capture_new,label=TRUE)))+
+  ggplot(aes(x=year,fill=year))+
   geom_bar(position = "dodge")+
-  labs(x = NULL,
-         y = "Number of Captures",fill="Month")+
-  theme_light(base_size = 12)+
-     theme(axis.text.x = element_text(angle = 60, hjust = 1))
-```
-
-![](final_final_project_files/figure-html/unnamed-chunk-17-1.png)<!-- -->
-
-
-
-```r
-turtles3%>%
-  ggplot(aes(x=capture_day,fill=capture_day))+
-  geom_bar(position = "dodge")+
-  labs(x = "Day of the Month",
-         y = "Number of Captures")+
+  labs(title="Total Turtle Captures Across the Years",x="Year",y="Turtle Captures")+
   theme_light(base_size = 12)+
      theme(axis.text.x = element_text(angle = 60, hjust = 1))
 ```
@@ -441,15 +452,78 @@ turtles3%>%
 ![](final_final_project_files/figure-html/unnamed-chunk-18-1.png)<!-- -->
 
 
+
 ```r
 turtles3%>%
-  ggplot(aes(wday(x=date_capture_new,label=TRUE),fill=wday(x=date_capture_new,label=TRUE)))+
-  geom_bar()+
-  labs(x = NULL,
-         y = "Number of Captures",fill="Week Day")+
-  scale_fill_brewer(palette = "Set1")+
+  ggplot(aes(month(x=date_capture_new,label=TRUE), fill=month(x=date_capture_new,label=TRUE)))+
+  geom_bar(position = "dodge")+
+  labs(title="Turtle Captures by Month",x = NULL,
+         y = "Number of Captures",fill="Month")+
+  scale_fill_brewer(palette="Set3")+
   theme_light(base_size = 12)+
      theme(axis.text.x = element_text(angle = 60, hjust = 1))
 ```
 
 ![](final_final_project_files/figure-html/unnamed-chunk-19-1.png)<!-- -->
+
+```r
+turtles3%>%
+  ggplot(aes(month(x=date_capture_new,label=TRUE),fill=month(x=date_capture_new,label=TRUE)))+
+  geom_bar()+
+  labs(title="Turtle Captures by Month",x = NULL,
+         y = "Number of Captures",fill="Month")+
+  scale_fill_brewer(palette="Set3")+
+  theme_light(base_size = 12)+
+     theme(axis.text.x = element_text(angle = 60, hjust = 1,size=6))+
+  facet_wrap(~year)
+```
+
+![](final_final_project_files/figure-html/unnamed-chunk-20-1.png)<!-- -->
+
+```r
+turtles3$year<-as.factor(turtles3$year)
+turtles3%>%
+  group_by(species,year)%>%
+  summarise(Total=n())%>%
+  ggplot(aes(x=year,y=Total,group=species,color=species))+
+  geom_line()+
+  geom_point(shape=2)+
+  scale_fill_brewer(palette = "Set3")+
+  theme_light(base_size = 12)+
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))+
+  labs(title = "Turtle Captures By Species Across the Years",x="Year",y="Turtle Captures")
+```
+
+```
+## `summarise()` has grouped output by 'species'. You can override using the `.groups` argument.
+```
+
+![](final_final_project_files/figure-html/unnamed-chunk-21-1.png)<!-- -->
+
+
+
+```r
+turtles3%>%
+  ggplot(aes(x=day(date_capture_new)))+
+  geom_density(color="black",fill="green",alpha=.5)+
+  labs(title="Turtle Captures Within a Given Month",x = "Day of the Month",
+         y = "Number of Captures")+
+  theme_light(base_size = 12)+
+     theme(axis.text.x = element_text(angle = 60, hjust = 1))
+```
+
+![](final_final_project_files/figure-html/unnamed-chunk-22-1.png)<!-- -->
+
+
+```r
+turtles3%>%
+  ggplot(aes(wday(x=date_capture_new,label=TRUE),fill=wday(x=date_capture_new,label=TRUE)))+
+  geom_bar()+
+  labs(title="Turtle Captures Across the Week Days",x = NULL,
+         y = "Number of Captures",fill="Week Day")+
+  scale_fill_brewer(palette = "Set3")+
+  theme_light(base_size = 12)+
+     theme(axis.text.x = element_text(angle = 60, hjust = 1))
+```
+
+![](final_final_project_files/figure-html/unnamed-chunk-23-1.png)<!-- -->
