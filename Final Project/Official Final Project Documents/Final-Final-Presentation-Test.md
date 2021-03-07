@@ -1,36 +1,25 @@
 ---
-title: "final_final_project"
+title: "Surveying Sea Turtles"
+author: "Eric Coyle, Isaiah Bluestein, and Madeline Frey"
 output: 
   html_document: 
     keep_md: yes
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
 
-```{r}
-library(here)
-library(tidyverse)
-library(naniar)
-library(janitor)
-library(shiny)
-library(paletteer)
-library(ggmap)
-library(rgeos)
-library(rgdal)
-library(devtools)
-library(lubridate)
-library(leaflet)
-library(leaflet.extras)
-library(leaflet.minicharts)
-```
 
-```{r}
-turtles<-read.csv(here("Final Project","Official Final Project Documents/Turtle_data.csv"))
-```
 
-```{r}
+
+
+
+# Turtle Dataset
+We are using data collected by NOAA Fisheries' Southeast Fisheries Science Center. They characterized North Carolina populations of sea turtles between 1995 and 2015.
+[NOAA Download link](https://www.nodc.noaa.gov/archive/arc0108/0162846/1.1/data/0-data/26466/pop_survey_tagging_data.csv)
+
+# Cleaning Data
+
+
+```r
 turtles_tidy<-turtles%>%
   na_if("")%>%
   na_if("0")%>%
@@ -39,7 +28,8 @@ turtles_tidy<-turtles%>%
 ```
 
 
-```{r}
+
+```r
 turtles3<-turtles_tidy%>%
   mutate(DateCapture_new=dmy(DateCapture))%>%
   filter(!is.na(DateCapture_new))%>%
@@ -49,121 +39,92 @@ turtles3<-turtles_tidy%>%
 turtles3<-clean_names(turtles3)
 ```
 
-```{r}
-turtles3%>%
-  select(cap_latitude,cap_longitude)%>%
-  summary()
+# Where were turtles captured? 
+
+```
+##   cap_latitude   cap_longitude   
+##  Min.   :33.49   Min.   :-79.08  
+##  1st Qu.:34.84   1st Qu.:-76.38  
+##  Median :34.93   Median :-76.27  
+##  Mean   :34.96   Mean   :-76.24  
+##  3rd Qu.:35.05   3rd Qu.:-76.13  
+##  Max.   :38.41   Max.   :-75.47
 ```
 
-```{r}
+
+```r
 cap_lat <- c(33.49, 38.41)
 cap_long <- c(-79.08, -75.47)
 bbox <- make_bbox(cap_long, cap_lat, f = 0.1)
 ```
 
-```{r}
+
+```r
 cap_map_base <- get_map(bbox, maptype = "toner-lite", source = "stamen")
-ggmap(cap_map_base)
+```
+
+```
+## Map tiles by Stamen Design, under CC BY 3.0. Data by OpenStreetMap, under ODbL.
 ```
 
 
 
-```{r}
-ggmap(cap_map_base) + 
-  geom_point(data = turtles3, aes(cap_longitude,cap_latitude,color=species,shape=dead_alive_new), size = 1.5) +
-  scale_fill_brewer(palette = "Set1")+
-  theme_light(base_size = 12)+
-     theme(axis.text.x = element_text(angle = 60, hjust = 1))+
-           labs(x = "Longitude", y = "Latitude", title = "Capture Locations", color= "Species", shape= "Status")
+![](Final-Final-Presentation-Test_files/figure-html/unnamed-chunk-8-1.png)<!-- -->
+
+# Where were turtles released?
+
+
+```
+##   rel_latitude   rel_longitude   
+##  Min.   :27.82   Min.   :-81.24  
+##  1st Qu.:34.83   1st Qu.:-76.38  
+##  Median :34.89   Median :-76.33  
+##  Mean   :34.92   Mean   :-76.26  
+##  3rd Qu.:35.04   3rd Qu.:-76.12  
+##  Max.   :39.00   Max.   :-36.03  
+##  NA's   :351     NA's   :353
 ```
 
 
-```{r}
-turtles3%>%
-  select(rel_latitude,rel_longitude)%>%
-  summary()
-```
-
-```{r}
+```r
 rel_lat <- c(27.82, 39)
 rel_long <- c(-81.24, -36.03)
 bbox2 <- make_bbox(rel_long, rel_lat, f = 0.05)
 ```
 
-```{r}
+
+```r
 rel_map_base <- get_map(bbox2, maptype = "toner-lite", source = "stamen")
-ggmap(rel_map_base)
+```
+
+```
+## Map tiles by Stamen Design, under CC BY 3.0. Data by OpenStreetMap, under ODbL.
 ```
 
 
-```{r}
-ggmap(rel_map_base) + 
-  geom_point(data = turtles3, aes(rel_longitude,rel_latitude,color=species,shape=dead_alive_new), size = 1.5) +
-  scale_fill_brewer(palette = "Set1")+
-  theme_light(base_size = 12)+
-     theme(axis.text.x = element_text(angle = 60, hjust = 1))+
-           labs(x = "Longitude", y = "Latitude", title = "Release Locations", color= "Species", shape= "Status")
-```
-```{r}
-ggmap(rel_map_base) + 
-  geom_point(data = turtles3, aes(rel_longitude,rel_latitude,color=species,shape=dead_alive_new), size = 1.5) +
-  xlim(-82,-71)+
-  scale_fill_brewer(palette = "Set1")+
-  theme_light(base_size = 12)+
-     theme(axis.text.x = element_text(angle = 60, hjust = 1))+
-           labs(x = "Longitude", y = "Latitude", title = "Release Locations Without Outlier", color= "Species", shape= "Status")
-```
+![](Final-Final-Presentation-Test_files/figure-html/unnamed-chunk-12-1.png)<!-- -->
+There is one outlier Loggerhead turtle, so we decided to remove it:
 
 
-```{r}
-library(shinydashboard)
 ```
+## Scale for 'x' is already present. Adding another scale for 'x', which will
+## replace the existing scale.
+```
+
+![](Final-Final-Presentation-Test_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
+
+
+
 
 #Qualitative Data of Turtle Captures over Time
 
-```{r}
-turtles3$year<-as.character(turtles3$year)
-ui <- dashboardPage(skin="green",
-  dashboardHeader(title = "Turtle Captures"),
-  dashboardSidebar(disable = F),
-  dashboardBody(selectInput("species", "Select Species:", 
-                  choices=unique(turtles3$species)),
-  fluidRow(
-  box(title = "Plot Options", width = 4,
-  selectInput("x", "Catch Details", choices = c("research_type","dead_alive_new", "body_area_pit","body_area","record_type","cap_region","rel_region"), 
-              selected = "record_type"),
-      hr(),
-      helpText("Source: (https://www.fisheries.noaa.gov/inport/item/35875). Capture efforts were conducted to evaluate the growth rates, sex ratios, size distribution, species composition, genetic composition, relative survival rates and foraging ecology of sea turtle populations in NC.")
-  ), 
-  box(title = "Turtle Information", width = 8,
-  plotOutput("plot", width = "800px", height = "500px")
-  ) 
-  ) 
-  ) 
-  )
-server <- function(input, output, session) { 
-  
-  output$plot <- renderPlot({
-  turtles3 %>%
-      filter(species == input$species) %>%
-  ggplot(aes_string(x ="year",fill = input$x)) +
-  geom_bar(position = "dodge")+
-       scale_fill_brewer(palette = "Set1")+
-  theme_light(base_size = 18)+
-     theme(axis.text.x = element_text(angle = 60, hjust = 1))+
-      labs(title = "Turtle Catch Characteristics",x=NULL,y="Number of Turtles")
-  })
-  
-  session$onSessionEnded(stopApp)
-  }
-
-shinyApp(ui, server)
-```
+`<div style="width: 100% ; height: 400px ; text-align: center; box-sizing: border-box; -moz-box-sizing: border-box; -webkit-box-sizing: border-box;" class="muted well">Shiny applications not supported in static R Markdown documents</div>`{=html}
 
 
 #What Tests were performed on Turtles over time
 
-```{r}
+
+```r
 turtles3$year<-as.character(turtles3$year)
 ui <- dashboardPage(skin="green",
   dashboardHeader(title = "Turtle Capture Tests"),
@@ -202,9 +163,12 @@ server <- function(input, output, session) {
 shinyApp(ui, server)
 ```
 
+`<div style="width: 100% ; height: 400px ; text-align: center; box-sizing: border-box; -moz-box-sizing: border-box; -webkit-box-sizing: border-box;" class="muted well">Shiny applications not supported in static R Markdown documents</div>`{=html}
+
 #Quantitative Data Apps (rought first idea, will adjust aes on Thursday-remember change color and add descriptions for measurements and source data like in the qualitative apps)
 
-```{r}
+
+```r
 ui <- dashboardPage(skin="green",
   dashboardHeader(title = "Turtle Measurements"),
   dashboardSidebar(disable = T),
@@ -241,6 +205,8 @@ server <- function(input, output, session) {
 shinyApp(ui, server)
 ```
 
+`<div style="width: 100% ; height: 400px ; text-align: center; box-sizing: border-box; -moz-box-sizing: border-box; -webkit-box-sizing: border-box;" class="muted well">Shiny applications not supported in static R Markdown documents</div>`{=html}
+
 #this is where (if done) the interactive map will go
 
 
@@ -251,29 +217,33 @@ shinyApp(ui, server)
 
 
 
-```{r}
+
+```r
 green_turtles <- turtles3 %>%
   filter(species == "Green")
-
 ```
-```{r}
+
+```r
 loggerhead_turtles <- turtles3 %>%
   filter(species == "Loggerhead")
-  
 ```
-```{r}
+
+```r
 kemps_ridley_turtles<- turtles3 %>%
   filter(species == "Kemps_Ridley")
 ```
-```{r}
+
+```r
 unknown_turtles<- turtles3 %>%
   filter(species == "UN")
 ```
-```{r}
+
+```r
 hawksbill_turtles <- turtles3 %>%
   filter(species == "Hawksbill")
 ```
-```{r}
+
+```r
 leatherback_turtles<- turtles3 %>%
   filter(species == "Leatherback")
 ```
@@ -281,8 +251,8 @@ leatherback_turtles<- turtles3 %>%
 
 
 
-```{r}
 
+```r
 ui <- dashboardPage(skin="green",
   dashboardHeader(title = "Turtle Capture Locations"),
   dashboardSidebar(disable = T),
@@ -358,7 +328,8 @@ server <- function(input, output, session) {
 
 
 
-```{r}
+
+```r
 turtles3%>%
   ggplot(aes(x=year,fill=year))+
   geom_bar(position = "dodge")+
@@ -367,8 +338,11 @@ turtles3%>%
      theme(axis.text.x = element_text(angle = 60, hjust = 1))
 ```
 
+![](Final-Final-Presentation-Test_files/figure-html/unnamed-chunk-25-1.png)<!-- -->
 
-```{r}
+
+
+```r
 turtles3%>%
   ggplot(aes(month(x=date_capture_new,label=TRUE), fill=month(x=date_capture_new,label=TRUE)))+
   geom_bar(position = "dodge")+
@@ -378,7 +352,10 @@ turtles3%>%
   theme_light(base_size = 12)+
      theme(axis.text.x = element_text(angle = 60, hjust = 1))
 ```
-```{r}
+
+![](Final-Final-Presentation-Test_files/figure-html/unnamed-chunk-26-1.png)<!-- -->
+
+```r
 turtles3%>%
   ggplot(aes(month(x=date_capture_new,label=TRUE),fill=month(x=date_capture_new,label=TRUE)))+
   geom_bar()+
@@ -389,7 +366,10 @@ turtles3%>%
      theme(axis.text.x = element_text(angle = 60, hjust = 1,size=6))+
   facet_wrap(~year)
 ```
-```{r}
+
+![](Final-Final-Presentation-Test_files/figure-html/unnamed-chunk-27-1.png)<!-- -->
+
+```r
 turtles3$year<-as.factor(turtles3$year)
 turtles3%>%
   group_by(species,year)%>%
@@ -403,8 +383,15 @@ turtles3%>%
   labs(title = "Turtle Captures By Species Across the Years",x="Year",y="Turtle Captures")
 ```
 
+```
+## `summarise()` has grouped output by 'species'. You can override using the `.groups` argument.
+```
 
-```{r}
+![](Final-Final-Presentation-Test_files/figure-html/unnamed-chunk-28-1.png)<!-- -->
+
+
+
+```r
 turtles3%>%
   ggplot(aes(x=day(date_capture_new)))+
   geom_density(color="black",fill="green",alpha=.5)+
@@ -414,7 +401,10 @@ turtles3%>%
      theme(axis.text.x = element_text(angle = 60, hjust = 1))
 ```
 
-```{r}
+![](Final-Final-Presentation-Test_files/figure-html/unnamed-chunk-29-1.png)<!-- -->
+
+
+```r
 turtles3%>%
   ggplot(aes(wday(x=date_capture_new,label=TRUE),fill=wday(x=date_capture_new,label=TRUE)))+
   geom_bar()+
@@ -424,5 +414,7 @@ turtles3%>%
   theme_light(base_size = 12)+
      theme(axis.text.x = element_text(angle = 60, hjust = 1))
 ```
+
+![](Final-Final-Presentation-Test_files/figure-html/unnamed-chunk-30-1.png)<!-- -->
 
 
