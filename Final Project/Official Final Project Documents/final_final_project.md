@@ -13,7 +13,7 @@ library(here)
 ```
 
 ```
-## here() starts at C:/Users/ericc/Desktop/BIS15L-Group3-Final
+## here() starts at /Users/isaiahbluestein/Desktop/BIS15L-Group3-Final/BIS15L-Group3-Final
 ```
 
 ```r
@@ -21,18 +21,18 @@ library(tidyverse)
 ```
 
 ```
-## -- Attaching packages --------------------------------------- tidyverse 1.3.0 --
+## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.0 ──
 ```
 
 ```
-## v ggplot2 3.3.3     v purrr   0.3.4
-## v tibble  3.0.6     v dplyr   1.0.3
-## v tidyr   1.1.2     v stringr 1.4.0
-## v readr   1.4.0     v forcats 0.5.1
+## ✓ ggplot2 3.3.3     ✓ purrr   0.3.4
+## ✓ tibble  3.1.0     ✓ dplyr   1.0.4
+## ✓ tidyr   1.1.3     ✓ stringr 1.4.0
+## ✓ readr   1.4.0     ✓ forcats 0.5.1
 ```
 
 ```
-## -- Conflicts ------------------------------------------ tidyverse_conflicts() --
+## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
 ## x dplyr::filter() masks stats::filter()
 ## x dplyr::lag()    masks stats::lag()
 ```
@@ -77,8 +77,8 @@ library(rgeos)
 
 ```
 ## rgeos version: 0.5-5, (SVN revision 640)
-##  GEOS runtime version: 3.8.0-CAPI-1.13.1 
-##  Linking to sp version: 1.4-5 
+##  GEOS runtime version: 3.8.1-CAPI-1.13.3 
+##  Linking to sp version: 1.4-2 
 ##  Polygon checking: TRUE
 ```
 
@@ -89,16 +89,14 @@ library(rgdal)
 ```
 ## rgdal: version: 1.5-23, (SVN revision 1121)
 ## Geospatial Data Abstraction Library extensions to R successfully loaded
-## Loaded GDAL runtime: GDAL 3.2.1, released 2020/12/29
-## Path to GDAL shared files: C:/Users/ericc/Documents/R/win-library/4.0/rgdal/gdal
+## Loaded GDAL runtime: GDAL 3.1.4, released 2020/10/20
+## Path to GDAL shared files: /Library/Frameworks/R.framework/Versions/4.0/Resources/library/rgdal/gdal
 ## GDAL binary built with GEOS: TRUE 
-## Loaded PROJ runtime: Rel. 7.2.1, January 1st, 2021, [PJ_VERSION: 721]
-## Path to PROJ shared files: C:/Users/ericc/Documents/R/win-library/4.0/rgdal/proj
-## PROJ CDN enabled: FALSE
+## Loaded PROJ runtime: Rel. 6.3.1, February 10th, 2020, [PJ_VERSION: 631]
+## Path to PROJ shared files: /Library/Frameworks/R.framework/Versions/4.0/Resources/library/rgdal/proj
 ## Linking to sp version:1.4-5
 ## To mute warnings of possible GDAL/OSR exportToProj4() degradation,
 ## use options("rgdal_show_exportToProj4_warnings"="none") before loading rgdal.
-## Overwritten PROJ_LIB was C:/Users/ericc/Documents/R/win-library/4.0/rgdal/proj
 ```
 
 ```r
@@ -128,6 +126,12 @@ library(lubridate)
 ## The following objects are masked from 'package:base':
 ## 
 ##     date, intersect, setdiff, union
+```
+
+```r
+library(leaflet)
+library(leaflet.extras)
+library(leaflet.minicharts)
 ```
 
 
@@ -447,7 +451,123 @@ shinyApp(ui, server)
 #this is where (if done) the interactive map will go
 
 
+
 #after those we can include any additional graphs or charts that we want to include not covered in the apps
+
+
+
+
+
+
+```r
+green_turtles <- turtles3 %>%
+  filter(species == "Green")
+```
+
+```r
+loggerhead_turtles <- turtles3 %>%
+  filter(species == "Loggerhead")
+```
+
+```r
+kemps_ridley_turtles<- turtles3 %>%
+  filter(species == "Kemps_Ridley")
+```
+
+```r
+unknown_turtles<- turtles3 %>%
+  filter(species == "UN")
+```
+
+```r
+hawksbill_turtles <- turtles3 %>%
+  filter(species == "Hawksbill")
+```
+
+```r
+leatherback_turtles<- turtles3 %>%
+  filter(species == "Leatherback")
+```
+
+
+
+
+
+```r
+ui <- dashboardPage(skin="green",
+  dashboardHeader(title = "Turtle Capture Locations"),
+  dashboardSidebar(disable = T),
+  dashboardBody(
+
+fluidPage(
+ 
+ titlePanel("Turtle Capture Locations"),
+  
+  
+
+leafletOutput(outputId = "mymap"),
+absolutePanel(top = 60, left = 20, 
+      checkboxInput("green_point", "Green", FALSE),
+      checkboxInput("leatherback_point", "Leatherback", FALSE),
+      checkboxInput("loggerhead_point", "Loggerhead", FALSE),
+      checkboxInput("kemps_ridley_point", "Kemps Ridley", FALSE),
+      checkboxInput("unknown_point", "Unknown", FALSE),
+      checkboxInput("hawksbillk_point", "Hawksbill", FALSE)
+    )
+)
+)
+
+)
+
+
+
+server <- function(input, output, session) {
+  
+ pal1 <- colorFactor(topo.colors(7), turtles3$species)
+
+   #create the map
+  output$mymap <- renderLeaflet({
+    addTiles() %>%
+    leaflet(turtles3) %>% 
+      setView(lng = -99, lat = 45, zoom = 3)  %>% #setting the view over ~ center of North America
+      addTiles() %>% 
+      
+      addCircles(data = green_turtles, lat = ~ cap_latitude, lng = ~ cap_longitude, weight = 1, radius = 2, fillOpacity = 0.5, color = ~pal(turtles3$species), group = "Green") %>% 
+    addCircles(data = leatherback_turtles, lat = ~ cap_latitude, lng = ~ cap_longitude, weight = 1, radius = 2, fillOpacity = 0.5, color = ~pal(turtles3$species), group = "Leatherback") %>% 
+    addCircles(data = loggerhead_turtles, lat = ~ cap_latitude, lng = ~ cap_longitude, weight = 1, radius = 2, fillOpacity = 0.5, color = ~pal(turtles3$species), group = "Loggerhead") %>% 
+    addCircles(data = kemps_ridley_turtles, lat = ~ cap_latitude, lng = ~ cap_longitude, weight = 1, radius = 2, fillOpacity = 0.5, color = ~pal(turtles3$species), group = "Kemps Ridley") %>% 
+    addCircles(data = unknown_turtles, lat = ~ cap_latitude, lng = ~ cap_longitude, weight = 1, radius = 2, fillOpacity = 0.5, color = ~pal(turtles3$species), group = "Unknown")
+    addCircles(data = hawksbill_turtles, lat = ~ cap_latitude, lng = ~ cap_longitude, weight = 1, radius = 2, fillOpacity = 0.5, color = ~pal(turtles3$species), group = "Hawksbill")   
+      
+        
+  }) 
+
+  
+
+  
+#next we use the observe function to make the checkboxes dynamic. If you leave this part out you will see that the checkboxes, when clicked on the first time, display our filters...But if you then uncheck them they stay on. So we need to tell the server to update the map when the checkboxes are unchecked.
+ 
+  
+  observe({
+    proxy <- leafletProxy("mymap", data = turtles3)
+    proxy %>% clearMarkers()
+    if (input$markers) {
+      proxy %>% addCircleMarkers(stroke = FALSE, color = ~pal1(turtles3$species), fillOpacity = 0.2,
+                  opacity = 1)}
+    else {
+      proxy %>% clearMarkers() %>% clearControls()
+    }
+  })
+}
+```
+
+
+
+
+
+
+
+
 
 
 ```r
@@ -459,7 +579,7 @@ turtles3%>%
      theme(axis.text.x = element_text(angle = 60, hjust = 1))
 ```
 
-![](final_final_project_files/figure-html/unnamed-chunk-18-1.png)<!-- -->
+![](final_final_project_files/figure-html/unnamed-chunk-25-1.png)<!-- -->
 
 
 
@@ -474,7 +594,7 @@ turtles3%>%
      theme(axis.text.x = element_text(angle = 60, hjust = 1))
 ```
 
-![](final_final_project_files/figure-html/unnamed-chunk-19-1.png)<!-- -->
+![](final_final_project_files/figure-html/unnamed-chunk-26-1.png)<!-- -->
 
 ```r
 turtles3%>%
@@ -488,7 +608,7 @@ turtles3%>%
   facet_wrap(~year)
 ```
 
-![](final_final_project_files/figure-html/unnamed-chunk-20-1.png)<!-- -->
+![](final_final_project_files/figure-html/unnamed-chunk-27-1.png)<!-- -->
 
 ```r
 turtles3$year<-as.factor(turtles3$year)
@@ -508,7 +628,7 @@ turtles3%>%
 ## `summarise()` has grouped output by 'species'. You can override using the `.groups` argument.
 ```
 
-![](final_final_project_files/figure-html/unnamed-chunk-21-1.png)<!-- -->
+![](final_final_project_files/figure-html/unnamed-chunk-28-1.png)<!-- -->
 
 
 
@@ -522,7 +642,7 @@ turtles3%>%
      theme(axis.text.x = element_text(angle = 60, hjust = 1))
 ```
 
-![](final_final_project_files/figure-html/unnamed-chunk-22-1.png)<!-- -->
+![](final_final_project_files/figure-html/unnamed-chunk-29-1.png)<!-- -->
 
 
 ```r
@@ -536,4 +656,6 @@ turtles3%>%
      theme(axis.text.x = element_text(angle = 60, hjust = 1))
 ```
 
-![](final_final_project_files/figure-html/unnamed-chunk-23-1.png)<!-- -->
+![](final_final_project_files/figure-html/unnamed-chunk-30-1.png)<!-- -->
+
+
