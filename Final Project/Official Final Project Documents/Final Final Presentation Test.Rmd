@@ -58,7 +58,7 @@ turtles3<-clean_names(turtles3)
 ```
 
 # Where were turtles captured? 
-```{r, echo=FALSE}
+```{r, include=FALSE}
 turtles3%>%
   select(cap_latitude,cap_longitude)%>%
   summary()
@@ -87,7 +87,7 @@ ggmap(cap_map_base) +
 
 # Where were turtles released?
 
-```{r, echo= FALSE}
+```{r, include= FALSE}
 turtles3%>%
   select(rel_latitude,rel_longitude)%>%
   summary()
