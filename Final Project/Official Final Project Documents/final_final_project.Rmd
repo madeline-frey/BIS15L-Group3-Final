@@ -21,6 +21,9 @@ library(rgeos)
 library(rgdal)
 library(devtools)
 library(lubridate)
+library(leaflet)
+library(leaflet.extras)
+library(leaflet.minicharts)
 ```
 
 ```{r}
@@ -202,17 +205,27 @@ shinyApp(ui, server)
 #Quantitative Data Apps (rought first idea, will adjust aes on Thursday-remember change color and add descriptions for measurements and source data like in the qualitative apps)
 
 ```{r}
-ui <- dashboardPage(
+ui <- dashboardPage(skin="green",
   dashboardHeader(title = "Turtle Measurements"),
   dashboardSidebar(disable = T),
   dashboardBody(
   fluidRow(
-  box(
+  box(title="Measurement Options",width=3,
   selectInput("x", "Select X Variable", choices = c("scl_notch ", "scl_tip", "scw", "ccl_notch", "ccl_tip", "ccw", "circumference", "tail", "girth", "depth_mid", "weight"), selected = "scl_notch"),
   selectInput("y", "Select Y Variable", choices = c("scl_notch ", "scl_tip", "scw", "ccl_notch", "ccl_tip", "ccw", "circumference", "tail", "girth", "depth_mid", "weight"), selected = "scl_notch"),
-  ), # close the first box
+  hr(),
+      helpText("Source: (https://www.fisheries.noaa.gov/inport/item/35875). Capture efforts were conducted to evaluate the growth rates, sex ratios, size distribution, species composition, genetic composition, relative survival rates and foraging ecology of sea turtle populations in NC.")
+  ),
   box(
-  plotOutput("plot", width = "500px", height = "500px")
+  plotOutput("plot", width = "700px", height = "400px"),
+  h5("SCL_notch-straight carapace length measured from notch to tip in cm"),
+      h5("SCL_tip-straight carapace length measured from tip to tip in cm"),h5("SCW-straight carapace width in cm"),
+      h5("CCL_notch-curved carapace length measured from notch to tip in cm"),
+      h5("CCL_tip-curved carapace length measured from tip to tip in cm"),
+      h5("CCW-curved carapace width in cm"),h5("Circumference-body depth of turtle measured with tape measure in cm"),
+      h5("Girth-body depth of turtle measured with calipers, at highest point of carapace in cm"),
+      h5("Depth_ mid-body depth of turtle measured with calipers, at mid-point of carapace in cm"),h5("Tail-total length of tail in cm"),
+      h5("Weight-weight of turtle in kilograms"),
   ) 
   ) 
   ) 
@@ -220,7 +233,7 @@ ui <- dashboardPage(
 
 server <- function(input, output, session) { 
   output$plot <- renderPlot({
-  ggplot(turtles3, aes_string(x = input$x, y = input$y)) + geom_point(alpha=0.8) + theme_light(base_size = 18)
+  ggplot(turtles3, aes_string(x = input$x, y = input$y)) + geom_point(alpha=0.8) +scale_fill_brewer(palette = "Set1")+ theme_light(base_size = 18)+theme(axis.text.x = element_text(angle = 60, hjust = 1))+labs(title="Turtle Measurement Comparisons")
   })
   session$onSessionEnded(stopApp)
   }
@@ -231,7 +244,119 @@ shinyApp(ui, server)
 #this is where (if done) the interactive map will go
 
 
-#after those we can include any additional graphs or charts that we ant to include not covered in the apps
+
+#after those we can include any additional graphs or charts that we want to include not covered in the apps
+
+
+
+
+
+```{r}
+green_turtles <- turtles3 %>%
+  filter(species == "Green")
+
+```
+```{r}
+loggerhead_turtles <- turtles3 %>%
+  filter(species == "Loggerhead")
+  
+```
+```{r}
+kemps_ridley_turtles<- turtles3 %>%
+  filter(species == "Kemps_Ridley")
+```
+```{r}
+unknown_turtles<- turtles3 %>%
+  filter(species == "UN")
+```
+```{r}
+hawksbill_turtles <- turtles3 %>%
+  filter(species == "Hawksbill")
+```
+```{r}
+leatherback_turtles<- turtles3 %>%
+  filter(species == "Leatherback")
+```
+
+
+
+
+```{r}
+
+ui <- dashboardPage(skin="green",
+  dashboardHeader(title = "Turtle Capture Locations"),
+  dashboardSidebar(disable = T),
+  dashboardBody(
+
+fluidPage(
+ 
+ titlePanel("Turtle Capture Locations"),
+  
+  
+
+leafletOutput(outputId = "mymap"),
+absolutePanel(top = 60, left = 20, 
+      checkboxInput("green_point", "Green", FALSE),
+      checkboxInput("leatherback_point", "Leatherback", FALSE),
+      checkboxInput("loggerhead_point", "Loggerhead", FALSE),
+      checkboxInput("kemps_ridley_point", "Kemps Ridley", FALSE),
+      checkboxInput("unknown_point", "Unknown", FALSE),
+      checkboxInput("hawksbillk_point", "Hawksbill", FALSE)
+    )
+)
+)
+
+)
+
+
+
+server <- function(input, output, session) {
+  
+ pal1 <- colorFactor(topo.colors(7), turtles3$species)
+
+   #create the map
+  output$mymap <- renderLeaflet({
+    addTiles() %>%
+    leaflet(turtles3) %>% 
+      setView(lng = -99, lat = 45, zoom = 3)  %>% #setting the view over ~ center of North America
+      addTiles() %>% 
+      
+      addCircles(data = green_turtles, lat = ~ cap_latitude, lng = ~ cap_longitude, weight = 1, radius = 2, fillOpacity = 0.5, color = ~pal(turtles3$species), group = "Green") %>% 
+    addCircles(data = leatherback_turtles, lat = ~ cap_latitude, lng = ~ cap_longitude, weight = 1, radius = 2, fillOpacity = 0.5, color = ~pal(turtles3$species), group = "Leatherback") %>% 
+    addCircles(data = loggerhead_turtles, lat = ~ cap_latitude, lng = ~ cap_longitude, weight = 1, radius = 2, fillOpacity = 0.5, color = ~pal(turtles3$species), group = "Loggerhead") %>% 
+    addCircles(data = kemps_ridley_turtles, lat = ~ cap_latitude, lng = ~ cap_longitude, weight = 1, radius = 2, fillOpacity = 0.5, color = ~pal(turtles3$species), group = "Kemps Ridley") %>% 
+    addCircles(data = unknown_turtles, lat = ~ cap_latitude, lng = ~ cap_longitude, weight = 1, radius = 2, fillOpacity = 0.5, color = ~pal(turtles3$species), group = "Unknown")
+    addCircles(data = hawksbill_turtles, lat = ~ cap_latitude, lng = ~ cap_longitude, weight = 1, radius = 2, fillOpacity = 0.5, color = ~pal(turtles3$species), group = "Hawksbill")   
+      
+        
+  }) 
+
+  
+
+  
+#next we use the observe function to make the checkboxes dynamic. If you leave this part out you will see that the checkboxes, when clicked on the first time, display our filters...But if you then uncheck them they stay on. So we need to tell the server to update the map when the checkboxes are unchecked.
+ 
+  
+  observe({
+    proxy <- leafletProxy("mymap", data = turtles3)
+    proxy %>% clearMarkers()
+    if (input$markers) {
+      proxy %>% addCircleMarkers(stroke = FALSE, color = ~pal1(turtles3$species), fillOpacity = 0.2,
+                  opacity = 1)}
+    else {
+      proxy %>% clearMarkers() %>% clearControls()
+    }
+  })
+}
+```
+
+
+
+
+
+
+
+
 
 ```{r}
 turtles3%>%
@@ -299,3 +424,5 @@ turtles3%>%
   theme_light(base_size = 12)+
      theme(axis.text.x = element_text(angle = 60, hjust = 1))
 ```
+
+

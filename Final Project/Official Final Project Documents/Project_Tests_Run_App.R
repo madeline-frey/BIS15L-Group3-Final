@@ -9,7 +9,7 @@ library(janitor)
 library(lubridate)
 library(here)
 
-turtles<-read.csv(here("Final Project","Turtle_data.csv"))
+turtles<-read.csv(here("Final Project","Official Final Project Documents/Turtle_data.csv"))
 turtles_tidy<-turtles%>%
   na_if("")%>%
   na_if("0")%>%
