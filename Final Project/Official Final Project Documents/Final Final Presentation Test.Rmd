@@ -1,5 +1,7 @@
 ---
-title: "final_final_project"
+title: "Surveying Sea Turtles"
+author: "Eric Coyle, Isaiah Bluestein, and Madeline Frey"
+runtime: shiny
 output: 
   html_document: 
     keep_md: yes
@@ -9,9 +11,7 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-
-
-```{r}
+```{r, include= FALSE}
 library(here)
 library(tidyverse)
 library(naniar)
@@ -28,9 +28,15 @@ library(leaflet.extras)
 library(leaflet.minicharts)
 ```
 
-```{r}
+```{r, include=FALSE}
 turtles<-read.csv(here("Final Project","Official Final Project Documents/Turtle_data.csv"))
 ```
+
+# Turtle Dataset
+We are using data collected by NOAA Fisheries' Southeast Fisheries Science Center. They characterized North Carolina populations of sea turtles between 1988 and 2015.
+[NOAA Download link](https://www.nodc.noaa.gov/archive/arc0108/0162846/1.1/data/0-data/26466/pop_survey_tagging_data.csv)
+
+# Cleaning Data
 
 ```{r}
 turtles_tidy<-turtles%>%
@@ -51,7 +57,8 @@ turtles3<-turtles_tidy%>%
 turtles3<-clean_names(turtles3)
 ```
 
-```{r}
+# Where were turtles captured? 
+```{r, include=FALSE}
 turtles3%>%
   select(cap_latitude,cap_longitude)%>%
   summary()
@@ -65,22 +72,22 @@ bbox <- make_bbox(cap_long, cap_lat, f = 0.1)
 
 ```{r}
 cap_map_base <- get_map(bbox, maptype = "toner-lite", source = "stamen")
-ggmap(cap_map_base)
 ```
 
 
 
-```{r}
+```{r, echo= FALSE, warning= FALSE}
 ggmap(cap_map_base) + 
   geom_point(data = turtles3, aes(cap_longitude,cap_latitude,color=species,shape=dead_alive_new), size = 1.5) +
   scale_fill_brewer(palette = "Set1")+
   theme_light(base_size = 12)+
      theme(axis.text.x = element_text(angle = 60, hjust = 1))+
-           labs(x = "Longitude", y = "Latitude", title = "Capture Locations", color= "Species", shape= "Status")
+           labs(x = "Longitude", y = "Latitude", title = "Capture Locations",color= "Species", shape= "Status")
 ```
 
+# Where were turtles released?
 
-```{r}
+```{r, include= FALSE}
 turtles3%>%
   select(rel_latitude,rel_longitude)%>%
   summary()
@@ -94,36 +101,38 @@ bbox2 <- make_bbox(rel_long, rel_lat, f = 0.05)
 
 ```{r}
 rel_map_base <- get_map(bbox2, maptype = "toner-lite", source = "stamen")
-ggmap(rel_map_base)
+
 ```
 
 
-```{r}
+```{r, echo= FALSE, warning= FALSE}
 ggmap(rel_map_base) + 
   geom_point(data = turtles3, aes(rel_longitude,rel_latitude,color=species,shape=dead_alive_new), size = 1.5) +
   scale_fill_brewer(palette = "Set1")+
   theme_light(base_size = 12)+
      theme(axis.text.x = element_text(angle = 60, hjust = 1))+
-           labs(x = "Longitude", y = "Latitude", title = "Release Locations", color= "Species", shape= "Status")
+           labs(x = "Longitude", y = "Latitude", title = "Release Locations",color= "Species", shape= "Status")
 ```
-```{r}
+There is one outlier Loggerhead turtle, so we decided to remove it:
+
+```{r, echo=FALSE, warning= FALSE}
 ggmap(rel_map_base) + 
   geom_point(data = turtles3, aes(rel_longitude,rel_latitude,color=species,shape=dead_alive_new), size = 1.5) +
   xlim(-82,-71)+
   scale_fill_brewer(palette = "Set1")+
   theme_light(base_size = 12)+
      theme(axis.text.x = element_text(angle = 60, hjust = 1))+
-           labs(x = "Longitude", y = "Latitude", title = "Release Locations Without Outlier", color= "Species", shape= "Status")
+           labs(x = "Longitude", y = "Latitude", title = "Release Locations Without Outlier",color= "Species", shape= "Status")
 ```
 
 
-```{r}
+```{r, include=FALSE}
 library(shinydashboard)
 ```
 
-#Qualitative Data of Turtle Captures over Time
+#Qualitative Data of Turtle Captures over Time?
 
-```{r}
+```{r, echo=FALSE}
 turtles3$year<-as.character(turtles3$year)
 ui <- dashboardPage(skin="green",
   dashboardHeader(title = "Turtle Captures"),
@@ -163,9 +172,9 @@ shinyApp(ui, server)
 ```
 
 
-#What Tests were performed on Turtles over time
+#What Tests were performed on Turtles over time?
 
-```{r}
+```{r, echo=FALSE}
 turtles3$year<-as.character(turtles3$year)
 ui <- dashboardPage(skin="green",
   dashboardHeader(title = "Turtle Capture Tests"),
@@ -206,7 +215,7 @@ shinyApp(ui, server)
 
 #Quantitative Data Apps (rought first idea, will adjust aes on Thursday-remember change color and add descriptions for measurements and source data like in the qualitative apps)
 
-```{r}
+```{r, echo=FALSE}
 ui <- dashboardPage(skin="green",
   dashboardHeader(title = "Turtle Measurements"),
   dashboardSidebar(disable = T),
@@ -253,50 +262,49 @@ shinyApp(ui, server)
 
 
 
-```{r}
-turtles_map<-turtles3%>%
-  rename(lat=cap_latitude)%>%
-  rename(long=cap_longitude)
-green_turtles <- turtles_map %>%
+```{r, include=FALSE}
+green_turtles <- turtles3 %>%
   filter(species == "Green")
-```
 
-```{r}
-loggerhead_turtles <- turtles_map %>%
+```
+```{r,include=FALSE}
+loggerhead_turtles <- turtles3 %>%
   filter(species == "Loggerhead")
   
 ```
-
-```{r}
-kemps_ridley_turtles<- turtles_map %>%
+```{r,include=FALSE}
+kemps_ridley_turtles<- turtles3 %>%
   filter(species == "Kemps_Ridley")
 ```
-
-```{r}
-unknown_turtles<- turtles_map %>%
+```{r,include=FALSE}
+unknown_turtles<- turtles3 %>%
   filter(species == "UN")
 ```
-
-```{r}
-hawksbill_turtles <- turtles_map %>%
+```{r,include=FALSE}
+hawksbill_turtles <- turtles3 %>%
   filter(species == "Hawksbill")
 ```
-
-```{r}
-leatherback_turtles<- turtles_map %>%
+```{r,include=FALSE}
+leatherback_turtles<- turtles3 %>%
   filter(species == "Leatherback")
 ```
 
 
 
 
-```{r}
+```{r, echo=FALSE}
+
 ui <- dashboardPage(skin="green",
   dashboardHeader(title = "Turtle Capture Locations"),
   dashboardSidebar(disable = T),
   dashboardBody(
+
 fluidPage(
+ 
  titlePanel("Turtle Capture Locations"),
+  
+  
+
 leafletOutput(outputId = "mymap"),
 absolutePanel(top = 60, left = 20, 
       checkboxInput("green_point", "Green", FALSE),
@@ -305,46 +313,63 @@ absolutePanel(top = 60, left = 20,
       checkboxInput("kemps_ridley_point", "Kemps Ridley", FALSE),
       checkboxInput("unknown_point", "Unknown", FALSE),
       checkboxInput("hawksbillk_point", "Hawksbill", FALSE)
+    )
 )
 )
+
 )
-)
+
+
+
 server <- function(input, output, session) {
- pal1 <- colorFactor(topo.colors(7), turtles_map$species)
+  
+ pal1 <- colorFactor(topo.colors(7), turtles3$species)
+
+   #create the map
   output$mymap <- renderLeaflet({
-    leaflet(turtles_map) %>%
-      setView(lng = -79.5, lat = 33, zoom = 1)  %>%
-      addTiles() %>%
-      addCircles(data = green_turtles, lat = ~ lat, lng = ~ long, weight = 1, radius = 2, fillOpacity = 0.5, color = ~pal(species), group = "Green") %>% 
-    addCircles(data = leatherback_turtles, lat = ~ lat, lng = ~ long, weight = 1, radius = 2, fillOpacity = 0.5, color = ~pal(species), group = "Leatherback") %>% 
-    addCircles(data = loggerhead_turtles, lat = ~ lat, lng = ~ long, weight = 1, radius = 2, fillOpacity = 0.5, color = ~pal(species), group = "Loggerhead") %>% 
-    addCircles(data = kemps_ridley_turtles, lat = ~ lat, lng = ~ long, weight = 1, radius = 2, fillOpacity = 0.5, color = ~pal(species), group = "Kemps Ridley") %>% 
-    addCircles(data = unknown_turtles, lat = ~ lat, lng = ~ long, weight = 1, radius = 2, fillOpacity = 0.5, color = ~pal(species), group = "Unknown")
-    addCircles(data = hawksbill_turtles, lat = ~ lat, lng = ~ long, weight = 1, radius = 2, fillOpacity = 0.5, color = ~pal(species), group = "Hawksbill")
-  })
+    addTiles() %>%
+    leaflet(turtles3) %>% 
+      setView(lng = -99, lat = 45, zoom = 3)  %>% #setting the view over ~ center of North America
+      addTiles() %>% 
+      
+      addCircles(data = green_turtles, lat = ~ cap_latitude, lng = ~ cap_longitude, weight = 1, radius = 2, fillOpacity = 0.5, color = ~pal(turtles3$species), group = "Green") %>% 
+    addCircles(data = leatherback_turtles, lat = ~ cap_latitude, lng = ~ cap_longitude, weight = 1, radius = 2, fillOpacity = 0.5, color = ~pal(turtles3$species), group = "Leatherback") %>% 
+    addCircles(data = loggerhead_turtles, lat = ~ cap_latitude, lng = ~ cap_longitude, weight = 1, radius = 2, fillOpacity = 0.5, color = ~pal(turtles3$species), group = "Loggerhead") %>% 
+    addCircles(data = kemps_ridley_turtles, lat = ~ cap_latitude, lng = ~ cap_longitude, weight = 1, radius = 2, fillOpacity = 0.5, color = ~pal(turtles3$species), group = "Kemps Ridley") %>% 
+    addCircles(data = unknown_turtles, lat = ~ cap_latitude, lng = ~ cap_longitude, weight = 1, radius = 2, fillOpacity = 0.5, color = ~pal(turtles3$species), group = "Unknown")
+    addCircles(data = hawksbill_turtles, lat = ~ cap_latitude, lng = ~ cap_longitude, weight = 1, radius = 2, fillOpacity = 0.5, color = ~pal(turtles3$species), group = "Hawksbill")   
+      
+        
+  }) 
+
+  
+
+  
+#next we use the observe function to make the checkboxes dynamic. If you leave this part out you will see that the checkboxes, when clicked on the first time, display our filters...But if you then uncheck them they stay on. So we need to tell the server to update the map when the checkboxes are unchecked.
+ 
+  
   observe({
-    proxy <- leafletProxy("mymap", data = turtles_map)
+    proxy <- leafletProxy("mymap", data = turtles3)
     proxy %>% clearMarkers()
     if (input$markers) {
-      proxy %>% addCircleMarkers(stroke = FALSE, color = ~pal1(turtles_map$species), fillOpacity = 0.2,
+      proxy %>% addCircleMarkers(stroke = FALSE, color = ~pal1(turtles3$species), fillOpacity = 0.2,
                   opacity = 1)}
     else {
       proxy %>% clearMarkers() %>% clearControls()
     }
   })
 }
-shinyApp(ui, server)
 ```
 
-#next we use the observe function to make the checkboxes dynamic. If you leave this part out you will see that the checkboxes, when clicked on the first time, display our filters...But if you then uncheck them they stay on. So we need to tell the server to update the map when the checkboxes are unchecked.
 
 
 
 
 
 
+# How did turtle captures change over time?
 
-```{r}
+```{r, echo=FALSE}
 turtles3%>%
   ggplot(aes(x=year,fill=year))+
   geom_bar(position = "dodge")+
@@ -354,7 +379,7 @@ turtles3%>%
 ```
 
 
-```{r}
+```{r,echo=FALSE}
 turtles3%>%
   ggplot(aes(month(x=date_capture_new,label=TRUE), fill=month(x=date_capture_new,label=TRUE)))+
   geom_bar(position = "dodge")+
@@ -364,7 +389,8 @@ turtles3%>%
   theme_light(base_size = 12)+
      theme(axis.text.x = element_text(angle = 60, hjust = 1))
 ```
-```{r}
+Turtles are caught most in October and November. Does this trend hold up across years?
+```{r,echo=FALSE}
 turtles3%>%
   ggplot(aes(month(x=date_capture_new,label=TRUE),fill=month(x=date_capture_new,label=TRUE)))+
   geom_bar()+
@@ -375,6 +401,7 @@ turtles3%>%
      theme(axis.text.x = element_text(angle = 60, hjust = 1,size=6))+
   facet_wrap(~year)
 ```
+Yes, the trend seems to be consistent in most years, with some exceptions. 
 ```{r}
 turtles3$year<-as.factor(turtles3$year)
 turtles3%>%
@@ -386,9 +413,11 @@ turtles3%>%
   scale_fill_brewer(palette = "Set3")+
   theme_light(base_size = 12)+
   theme(axis.text.x = element_text(angle = 60, hjust = 1))+
-  labs(title = "Turtle Captures By Species Across the Years",x="Year",y="Turtle Captures")
+  labs(title = "Turtle Captures By Species Across Years",x="Year",y="Turtle Captures")
 ```
-
+- Loggerhead turtles peaked in 2001, then quickly dropped off. 
+- Green sea turtles were caught much more frequently from 2007-2009. 
+- Other species did not vary as much.
 
 ```{r}
 turtles3%>%
@@ -399,6 +428,7 @@ turtles3%>%
   theme_light(base_size = 12)+
      theme(axis.text.x = element_text(angle = 60, hjust = 1))
 ```
+The most turtles were caught between the 10th and 20th days of the month. 
 
 ```{r}
 turtles3%>%
@@ -410,5 +440,5 @@ turtles3%>%
   theme_light(base_size = 12)+
      theme(axis.text.x = element_text(angle = 60, hjust = 1))
 ```
-
+Monday and Friday were big days for turtles!
 
