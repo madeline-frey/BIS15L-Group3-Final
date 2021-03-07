@@ -9,6 +9,8 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+
+
 ```{r}
 library(here)
 library(tidyverse)
@@ -252,29 +254,36 @@ shinyApp(ui, server)
 
 
 ```{r}
-green_turtles <- turtles3 %>%
+turtles_map<-turtles3%>%
+  rename(lat=cap_latitude)%>%
+  rename(long=cap_longitude)
+green_turtles <- turtles_map %>%
   filter(species == "Green")
-
 ```
+
 ```{r}
-loggerhead_turtles <- turtles3 %>%
+loggerhead_turtles <- turtles_map %>%
   filter(species == "Loggerhead")
   
 ```
+
 ```{r}
-kemps_ridley_turtles<- turtles3 %>%
+kemps_ridley_turtles<- turtles_map %>%
   filter(species == "Kemps_Ridley")
 ```
+
 ```{r}
-unknown_turtles<- turtles3 %>%
+unknown_turtles<- turtles_map %>%
   filter(species == "UN")
 ```
+
 ```{r}
-hawksbill_turtles <- turtles3 %>%
+hawksbill_turtles <- turtles_map %>%
   filter(species == "Hawksbill")
 ```
+
 ```{r}
-leatherback_turtles<- turtles3 %>%
+leatherback_turtles<- turtles_map %>%
   filter(species == "Leatherback")
 ```
 
@@ -282,18 +291,12 @@ leatherback_turtles<- turtles3 %>%
 
 
 ```{r}
-
 ui <- dashboardPage(skin="green",
   dashboardHeader(title = "Turtle Capture Locations"),
   dashboardSidebar(disable = T),
   dashboardBody(
-
 fluidPage(
- 
  titlePanel("Turtle Capture Locations"),
-  
-  
-
 leafletOutput(outputId = "mymap"),
 absolutePanel(top = 60, left = 20, 
       checkboxInput("green_point", "Green", FALSE),
@@ -302,55 +305,38 @@ absolutePanel(top = 60, left = 20,
       checkboxInput("kemps_ridley_point", "Kemps Ridley", FALSE),
       checkboxInput("unknown_point", "Unknown", FALSE),
       checkboxInput("hawksbillk_point", "Hawksbill", FALSE)
-    )
 )
 )
-
 )
-
-
-
+)
 server <- function(input, output, session) {
-  
- pal1 <- colorFactor(topo.colors(7), turtles3$species)
-
-   #create the map
+ pal1 <- colorFactor(topo.colors(7), turtles_map$species)
   output$mymap <- renderLeaflet({
-    addTiles() %>%
-    leaflet(turtles3) %>% 
-      setView(lng = -99, lat = 45, zoom = 3)  %>% #setting the view over ~ center of North America
-      addTiles() %>% 
-      
-      addCircles(data = green_turtles, lat = ~ cap_latitude, lng = ~ cap_longitude, weight = 1, radius = 2, fillOpacity = 0.5, color = ~pal(turtles3$species), group = "Green") %>% 
-    addCircles(data = leatherback_turtles, lat = ~ cap_latitude, lng = ~ cap_longitude, weight = 1, radius = 2, fillOpacity = 0.5, color = ~pal(turtles3$species), group = "Leatherback") %>% 
-    addCircles(data = loggerhead_turtles, lat = ~ cap_latitude, lng = ~ cap_longitude, weight = 1, radius = 2, fillOpacity = 0.5, color = ~pal(turtles3$species), group = "Loggerhead") %>% 
-    addCircles(data = kemps_ridley_turtles, lat = ~ cap_latitude, lng = ~ cap_longitude, weight = 1, radius = 2, fillOpacity = 0.5, color = ~pal(turtles3$species), group = "Kemps Ridley") %>% 
-    addCircles(data = unknown_turtles, lat = ~ cap_latitude, lng = ~ cap_longitude, weight = 1, radius = 2, fillOpacity = 0.5, color = ~pal(turtles3$species), group = "Unknown")
-    addCircles(data = hawksbill_turtles, lat = ~ cap_latitude, lng = ~ cap_longitude, weight = 1, radius = 2, fillOpacity = 0.5, color = ~pal(turtles3$species), group = "Hawksbill")   
-      
-        
-  }) 
-
-  
-
-  
-#next we use the observe function to make the checkboxes dynamic. If you leave this part out you will see that the checkboxes, when clicked on the first time, display our filters...But if you then uncheck them they stay on. So we need to tell the server to update the map when the checkboxes are unchecked.
- 
-  
+    leaflet(turtles_map) %>%
+      setView(lng = -79.5, lat = 33, zoom = 1)  %>%
+      addTiles() %>%
+      addCircles(data = green_turtles, lat = ~ lat, lng = ~ long, weight = 1, radius = 2, fillOpacity = 0.5, color = ~pal(species), group = "Green") %>% 
+    addCircles(data = leatherback_turtles, lat = ~ lat, lng = ~ long, weight = 1, radius = 2, fillOpacity = 0.5, color = ~pal(species), group = "Leatherback") %>% 
+    addCircles(data = loggerhead_turtles, lat = ~ lat, lng = ~ long, weight = 1, radius = 2, fillOpacity = 0.5, color = ~pal(species), group = "Loggerhead") %>% 
+    addCircles(data = kemps_ridley_turtles, lat = ~ lat, lng = ~ long, weight = 1, radius = 2, fillOpacity = 0.5, color = ~pal(species), group = "Kemps Ridley") %>% 
+    addCircles(data = unknown_turtles, lat = ~ lat, lng = ~ long, weight = 1, radius = 2, fillOpacity = 0.5, color = ~pal(species), group = "Unknown")
+    addCircles(data = hawksbill_turtles, lat = ~ lat, lng = ~ long, weight = 1, radius = 2, fillOpacity = 0.5, color = ~pal(species), group = "Hawksbill")
+  })
   observe({
-    proxy <- leafletProxy("mymap", data = turtles3)
+    proxy <- leafletProxy("mymap", data = turtles_map)
     proxy %>% clearMarkers()
     if (input$markers) {
-      proxy %>% addCircleMarkers(stroke = FALSE, color = ~pal1(turtles3$species), fillOpacity = 0.2,
+      proxy %>% addCircleMarkers(stroke = FALSE, color = ~pal1(turtles_map$species), fillOpacity = 0.2,
                   opacity = 1)}
     else {
       proxy %>% clearMarkers() %>% clearControls()
     }
   })
 }
+shinyApp(ui, server)
 ```
 
-
+#next we use the observe function to make the checkboxes dynamic. If you leave this part out you will see that the checkboxes, when clicked on the first time, display our filters...But if you then uncheck them they stay on. So we need to tell the server to update the map when the checkboxes are unchecked.
 
 
 
