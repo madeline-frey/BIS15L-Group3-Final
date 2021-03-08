@@ -57,7 +57,7 @@ server <- function(input, output, session) {
       scale_fill_brewer(palette = "Set1")+
       theme_light(base_size = 18)+
       theme(axis.text.x = element_text(angle = 60, hjust = 1))+
-      labs(title = "Turtle Catch Characterisitics",x=NULL,y="Number of Turtles")
+      labs(title = "Turtle Catch Characteristics",x=NULL,y="Number of Turtles")
   })
   
   session$onSessionEnded(stopApp)

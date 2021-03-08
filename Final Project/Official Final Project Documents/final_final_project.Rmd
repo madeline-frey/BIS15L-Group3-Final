@@ -9,8 +9,6 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-
-
 ```{r}
 library(here)
 library(tidyverse)
@@ -25,8 +23,8 @@ library(devtools)
 library(lubridate)
 library(leaflet)
 library(leaflet.extras)
+library(leaflet.minicharts)
 ```
-#Source: https://www.fisheries.noaa.gov/inport/item/35875. Capture efforts were conducted to evaluate the growth rates, sex ratios, size distribution, species composition, genetic composition, relative survival rates and foraging ecology of sea turtle populations in NC to characterize sea turtle populations that inhabitat inshore and nearshore waters of North Carolina. CSv file from site:pop_survey_tagging_data.csv. CSV file from our file:Turtle_data.csv. 
 
 ```{r}
 turtles<-read.csv(here("Final Project","Official Final Project Documents/Turtle_data.csv"))
@@ -254,36 +252,29 @@ shinyApp(ui, server)
 
 
 ```{r}
-turtles_map<-turtles3%>%
-  select(species, cap_longitude, cap_latitude)
-green_turtles <- turtles_map %>%
-  filter(cap_longitude != "NA" & cap_longitude != "NA") %>% 
+green_turtles <- turtles3 %>%
   filter(species == "Green")
 
 ```
-
 ```{r}
-loggerhead_turtles <- turtles_map %>%
+loggerhead_turtles <- turtles3 %>%
   filter(species == "Loggerhead")
+  
 ```
-
 ```{r}
-kemps_ridley_turtles<- turtles_map %>%
+kemps_ridley_turtles<- turtles3 %>%
   filter(species == "Kemps_Ridley")
 ```
-
 ```{r}
-unknown_turtles<- turtles_map %>%
+unknown_turtles<- turtles3 %>%
   filter(species == "UN")
 ```
-
 ```{r}
-hawksbill_turtles <- turtles_map %>%
+hawksbill_turtles <- turtles3 %>%
   filter(species == "Hawksbill")
 ```
-
 ```{r}
-leatherback_turtles<- turtles_map %>%
+leatherback_turtles<- turtles3 %>%
   filter(species == "Leatherback")
 ```
 
@@ -291,125 +282,81 @@ leatherback_turtles<- turtles_map %>%
 
 
 ```{r}
+
 ui <- dashboardPage(skin="green",
   dashboardHeader(title = "Turtle Capture Locations"),
   dashboardSidebar(disable = T),
   dashboardBody(
+
 fluidPage(
+ 
  titlePanel("Turtle Capture Locations"),
+  
+  
+
 leafletOutput(outputId = "mymap"),
-absolutePanel(bottom = 25, left = 20, 
+absolutePanel(top = 60, left = 20, 
       checkboxInput("green_point", "Green", FALSE),
       checkboxInput("leatherback_point", "Leatherback", FALSE),
       checkboxInput("loggerhead_point", "Loggerhead", FALSE),
       checkboxInput("kemps_ridley_point", "Kemps Ridley", FALSE),
       checkboxInput("unknown_point", "Unknown", FALSE),
-      checkboxInput("hawksbill_point", "Hawksbill", FALSE)
+      checkboxInput("hawksbillk_point", "Hawksbill", FALSE)
+    )
 )
 )
+
 )
-)
+
+
+
 server <- function(input, output, session) {
-
-factpal <- colorFactor(topo.colors(6), turtles3$species)
   
-output$mymap <- renderLeaflet({
+ pal1 <- colorFactor(topo.colors(7), turtles3$species)
+
+   #create the map
+  output$mymap <- renderLeaflet({
+    addTiles() %>%
+    leaflet(turtles3) %>% 
+      setView(lng = -99, lat = 45, zoom = 3)  %>% #setting the view over ~ center of North America
+      addTiles() %>% 
+      
+      addCircles(data = green_turtles, lat = ~ cap_latitude, lng = ~ cap_longitude, weight = 1, radius = 2, fillOpacity = 0.5, color = ~pal(turtles3$species), group = "Green") %>% 
+    addCircles(data = leatherback_turtles, lat = ~ cap_latitude, lng = ~ cap_longitude, weight = 1, radius = 2, fillOpacity = 0.5, color = ~pal(turtles3$species), group = "Leatherback") %>% 
+    addCircles(data = loggerhead_turtles, lat = ~ cap_latitude, lng = ~ cap_longitude, weight = 1, radius = 2, fillOpacity = 0.5, color = ~pal(turtles3$species), group = "Loggerhead") %>% 
+    addCircles(data = kemps_ridley_turtles, lat = ~ cap_latitude, lng = ~ cap_longitude, weight = 1, radius = 2, fillOpacity = 0.5, color = ~pal(turtles3$species), group = "Kemps Ridley") %>% 
+    addCircles(data = unknown_turtles, lat = ~ cap_latitude, lng = ~ cap_longitude, weight = 1, radius = 2, fillOpacity = 0.5, color = ~pal(turtles3$species), group = "Unknown")
+    addCircles(data = hawksbill_turtles, lat = ~ cap_latitude, lng = ~ cap_longitude, weight = 1, radius = 2, fillOpacity = 0.5, color = ~pal(turtles3$species), group = "Hawksbill")   
+      
+        
+  }) 
+
   
-  basemap= leaflet()  %>%
-      addProviderTiles(providers$Stamen.TonerLite,
-      options = providerTileOptions(noWrap = TRUE))
 
-basemap %>%
-      addCircles(data = green_turtles, lat = ~ green_turtles$cap_latitude, lng = ~ green_turtles$cap_longitude, weight = 1, color = "green", radius = 5, fillOpacity = 0.5, group = "Green") %>% 
-addCircles(data = leatherback_turtles, lat = ~ leatherback_turtles$cap_latitude, lng = ~ leatherback_turtles$cap_longitude, weight = 1, radius = 10, fillOpacity = 0.5,  group = "Leatherback") %>% 
-    addCircles(data = loggerhead_turtles, lat = ~ loggerhead_turtles$cap_latitude, lng = ~ loggerhead_turtles$cap_longitude, weight = 1, radius = 5, fillOpacity = 0.5,  group = "Loggerhead") %>% 
-    addCircles(data = kemps_ridley_turtles, lat = ~ kemps_ridley_turtles$cap_latitude, lng = ~ kemps_ridley_turtles$cap_longitude, weight = 1, radius = 10, fillOpacity = 0.5, group = "Kemps Ridley") %>% 
-    addCircles(data = unknown_turtles, lat = ~ unknown_turtles$cap_latitude, lng = ~ unknown_turtles$cap_longitude, weight = 1, radius = 10, fillOpacity = 0.5, group = "Unknown") %>% 
-    addCircles(data = hawksbill_turtles, lat = ~ hawksbill_turtles$cap_latitude, lng = ~ hawksbill_turtles$cap_longitude, weight = 1, radius = 10, fillOpacity = 0.5, group = "Hawksbill")
-
-})
-
-observe({
-    proxy <- leafletProxy("mymap", data = green_turtles)
+  
+#next we use the observe function to make the checkboxes dynamic. If you leave this part out you will see that the checkboxes, when clicked on the first time, display our filters...But if you then uncheck them they stay on. So we need to tell the server to update the map when the checkboxes are unchecked.
+ 
+  
+  observe({
+    proxy <- leafletProxy("mymap", data = turtles3)
     proxy %>% clearMarkers()
-    if (input$green_point) {
-      proxy %>%  addCircles(data = green_turtles, lat = ~ green_turtles$cap_latitude, lng = ~ green_turtles$cap_longitude, weight = 3, radius = 5, fillOpacity = 0.5, group = "Green", color = ~factpal(species)) 
-      }
-    else{
-      proxy %>% clearShapes()
-      }
-    
-    
+    if (input$markers) {
+      proxy %>% addCircleMarkers(stroke = FALSE, color = ~pal1(turtles3$species), fillOpacity = 0.2,
+                  opacity = 1)}
+    else {
+      proxy %>% clearMarkers() %>% clearControls()
+    }
   })
-
-observe({
-    proxy <- leafletProxy("mymap", data = loggerhead_turtles)
-    proxy %>% clearMarkers()
-    if (input$loggerhead_point) {
-      proxy %>%  addCircles(data = loggerhead_turtles, lat = ~ loggerhead_turtles$cap_latitude, lng = ~ loggerhead_turtles$cap_longitude, weight = 3, radius = 10, fillOpacity = 0.5, group = "Loggerhead", color = ~factpal(species)) 
-      }
-    else{
-      proxy %>% clearShapes()
-      }
-    
-    
-})
-
-observe({
-    proxy <- leafletProxy("mymap", data = kemps_ridley_turtles)
-    proxy %>% clearMarkers()
-    if (input$kemps_ridley_point) {
-      proxy %>%  addCircles(data = kemps_ridley_turtles, lat = ~ kemps_ridley_turtles$cap_latitude, lng = ~ kemps_ridley_turtles$cap_longitude, weight = 3, radius = 10, fillOpacity = 0.5, group = "Kemps Ridley", color = ~factpal(species)) 
-      }
-    else{
-      proxy %>% clearShapes()
-      }
-    
-    
-})
-
-observe({
-    proxy <- leafletProxy("mymap", data = unknown_turtles)
-    proxy %>% clearMarkers()
-    if (input$unknown_point) {
-      proxy %>%  addCircles(data = unknown_turtles, lat = ~ unknown_turtles$cap_latitude, lng = ~ unknown_turtles$cap_longitude, weight = 10, radius = 10, fillOpacity = 0.5, group = "Unknown", color = ~factpal(species)) 
-      }
-    else{
-      proxy %>% clearShapes()
-      }
-    
-   
-})
-
-observe({
-    proxy <- leafletProxy("mymap", data = hawksbill_turtles)
-    proxy %>% clearMarkers()
-    if (input$hawksbill_point) {
-      proxy %>%  addCircles(data = hawksbill_turtles, lat = ~ hawksbill_turtles$cap_latitude, lng = ~ hawksbill_turtles$cap_longitude, weight = 10, radius = 10, fillOpacity = 0.5, group = "Hawksbill", color = ~factpal(species)) 
-      }
-    else{
-      proxy %>% clearShapes()
-      }
-    
-   
-})
-
-observe({
-    proxy <- leafletProxy("mymap", data = leatherback_turtles)
-    proxy %>% clearMarkers()
-    if (input$leatherback_point) {
-      proxy %>%  addCircles(data = leatherback_turtles, lat = ~ leatherback_turtles$cap_latitude, lng = ~ leatherback_turtles$cap_longitude, weight = 10, radius = 10, fillOpacity = 0.5, group = "Leatherback", color = ~factpal(species)) 
-      }
-    else{
-      proxy %>% clearShapes()
-      }
-    
-   
-})
- session$onSessionEnded(stopApp)
 }
-shinyApp(ui, server)
 ```
+
+
+
+
+
+
+
+
 
 ```{r}
 turtles3%>%
