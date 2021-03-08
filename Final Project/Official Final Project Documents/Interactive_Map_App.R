@@ -10,7 +10,6 @@ library(lubridate)
 library(here)
 library(leaflet)
 library(leaflet.extras)
-library(leaflet.minicharts)
 
 
 

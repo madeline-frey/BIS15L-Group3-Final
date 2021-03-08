@@ -25,7 +25,6 @@ library(devtools)
 library(lubridate)
 library(leaflet)
 library(leaflet.extras)
-library(leaflet.minicharts)
 ```
 #Source: https://www.fisheries.noaa.gov/inport/item/35875. Capture efforts were conducted to evaluate the growth rates, sex ratios, size distribution, species composition, genetic composition, relative survival rates and foraging ecology of sea turtle populations in NC to characterize sea turtle populations that inhabitat inshore and nearshore waters of North Carolina. CSv file from site:pop_survey_tagging_data.csv. CSV file from our file:Turtle_data.csv. 
 
