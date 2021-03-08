@@ -28,7 +28,8 @@ turtles3<-clean_names(turtles3)
 ui <- dashboardPage(skin="green",
                     dashboardHeader(title = "Turtle Measurements"),
                     dashboardSidebar(disable = T),
-                    dashboardBody(
+                    dashboardBody(selectInput("species", "Select Species:", 
+                                              choices=unique(turtles3$species)),
                       fluidRow(
                         box(title="Measurement Options",width=3,
                             selectInput("x", "Select X Variable", choices = c("scl_notch ", "scl_tip", "scw", "ccl_notch", "ccl_tip", "ccw", "circumference", "tail", "girth", "depth_mid", "weight"), selected = "scl_notch"),
@@ -53,7 +54,9 @@ ui <- dashboardPage(skin="green",
 
 server <- function(input, output, session) { 
   output$plot <- renderPlot({
-    ggplot(turtles3, aes_string(x = input$x, y = input$y)) + geom_point(alpha=0.8) +scale_fill_brewer(palette = "Set1")+ theme_light(base_size = 18)+theme(axis.text.x = element_text(angle = 60, hjust = 1))+labs(title="Turtle Measurement Comparisons")
+    turtles3 %>% 
+    filter(species == input$species) %>%
+    ggplot(aes_string(x = input$x, y = input$y)) + geom_point(alpha=0.8) +scale_fill_brewer(palette = "Set1")+ theme_light(base_size = 18)+theme(axis.text.x = element_text(angle = 60, hjust = 1))+labs(title="Turtle Measurement Comparisons")
   })
   session$onSessionEnded(stopApp)
 }
